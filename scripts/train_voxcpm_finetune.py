@@ -54,6 +54,7 @@ def train(
     max_steps: int = 100_000,
     max_batch_tokens: int = 0,
     save_path: str = "checkpoints",
+    num_proc: int = 16,  # Number of processes for dataset tokenization
     tensorboard: str = "",
     lambdas: Dict[str, float] = {"loss/diff": 1.0, "loss/stop": 1.0},
     lora: dict = None,
@@ -96,9 +97,9 @@ def train(
         text_ids = [tokenizer(text) for text in text_list]
         return {"text_ids": text_ids}
 
-    train_ds = train_ds.map(tokenize, batched=True, remove_columns=["text"])
+    train_ds = train_ds.map(tokenize, batched=True, remove_columns=["text"], num_proc=num_proc)
     if val_ds is not None:
-        val_ds = val_ds.map(tokenize, batched=True, remove_columns=["text"])
+        val_ds = val_ds.map(tokenize, batched=True, remove_columns=["text"], num_proc=num_proc)
 
     dataset_cnt = int(max(train_ds["dataset_id"])) + 1 if "dataset_id" in train_ds.column_names else 1
     num_train_samples = len(train_ds)
